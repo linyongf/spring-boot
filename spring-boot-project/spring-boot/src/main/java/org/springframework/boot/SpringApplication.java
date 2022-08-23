@@ -270,12 +270,17 @@ public class SpringApplication {
 	public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "PrimarySources must not be null");
+		//保存主配置类（这里接收一个数组，说明可以有多个）
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+		//判断当前应用是否是web应用
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
 		this.bootstrapRegistryInitializers = new ArrayList<>(
 				getSpringFactoriesInstances(BootstrapRegistryInitializer.class));
+		//获取META-INF下 所有springFactories 中 ApplicationContextInitializer
 		setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+		//获取META-INF下 所有springFactories 中 ApplicationListener
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+		//从多个配置类中 找到有main方法的配置类
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
 
@@ -303,15 +308,21 @@ public class SpringApplication {
 		SpringApplicationHooks.hooks().preRun(this);
 		long startTime = System.nanoTime();
 		DefaultBootstrapContext bootstrapContext = createBootstrapContext();
+		//声明applicationContext容器
 		ConfigurableApplicationContext context = null;
+		//配置headless属性
 		configureHeadlessProperty();
+		//获取META-INF下spring.factories中SpringApplicationRunListeners
 		SpringApplicationRunListeners listeners = getRunListeners(args);
+		//回调SpringApplicationRunListeners的starting()
 		listeners.starting(bootstrapContext, this.mainApplicationClass);
 		try {
+			//设置应用参数
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
 			// ***** 准备环境 发布 ApplicationEnvironmentPreparedEvent 事件 ******
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, bootstrapContext, applicationArguments);
 			configureIgnoreBeanInfo(environment);
+			//打印banner
 			Banner printedBanner = printBanner(environment);
 			// ****** 创建 ApplicationContext ******
 			context = createApplicationContext();
